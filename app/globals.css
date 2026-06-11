@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+/* Tailwind v4: class 기반 다크모드 활성화 */
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --background: #f1f5f9;
   --foreground: #0f172a;
+}
+
+.dark {
+  --background: #030712;
+  --foreground: #f9fafb;
 }
 
 @theme inline {
@@ -14,4 +22,5 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: background-color 0.2s, color 0.2s;
 }
