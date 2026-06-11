@@ -78,6 +78,7 @@ export default function GeminiInsights() {
   const [insights, setInsights] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [source, setSource] = useState<"gemini" | "preset">("preset");
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -94,18 +95,19 @@ export default function GeminiInsights() {
 
   const generate = async (tabIndex: number) => {
     const tab = INSIGHTS[tabIndex];
-    if (insights[tab.id]) return; // 이미 생성된 경우 재사용
+    if (insights[tab.id]) return;
     setLoading(tab.id);
     setError("");
     try {
       const res = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: tab.prompt, apiKey: localKey }),
+        body: JSON.stringify({ prompt: tab.prompt, apiKey: localKey, topic: tab.id }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setInsights(prev => ({ ...prev, [tab.id]: data.insight }));
+      setSource(data.source ?? "preset");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "오류 발생");
     }
@@ -129,6 +131,7 @@ export default function GeminiInsights() {
             <h2 className="text-xl font-bold dark:text-white">Gemini AI 인사이트</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {serverHasKey ? (
+
                 <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
                   <CheckCircle size={11} /> 서버 API 키 연결됨
                 </span>
@@ -236,8 +239,11 @@ export default function GeminiInsights() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{INSIGHTS[activeTab].emoji}</span>
                 <span className="text-xs font-bold text-purple-600 dark:text-purple-400">
-                  {INSIGHTS[activeTab].label} — Gemini 1.5 Flash 분석
+                  {INSIGHTS[activeTab].label} — {source === "gemini" ? "Gemini 2.0 Flash 실시간 분석" : "AI 사전 분석 인사이트"}
                 </span>
+                {source === "gemini" && (
+                  <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full font-bold">LIVE</span>
+                )}
               </div>
               <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                 {insights[INSIGHTS[activeTab].id]}
